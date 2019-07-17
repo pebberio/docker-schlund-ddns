@@ -1,0 +1,23 @@
+version: '3'
+services:
+  schlundddns:
+    image: customelements/schlund-ddns
+    container_name: schlund-ddns
+    networks:
+      - traefik
+    volumes:
+      - ./.schlund-ddns:/schlund-ddns/.schlund-ddns
+    environment:
+      - DDNS_CONFIG=/schlund-ddns/.schlund-ddns
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:YOUR.HOST.TLD"
+      - "traefik.port=5000"
+      - "traefik.protocol=http"
+      - "traefik.frontend.headers.SSLRedirect=false"
+      - "traefik.frontend.auth.basic=<USER-PASSWORD-OUTPUT>"
+
+networks:
+  traefik:
+    external: true
