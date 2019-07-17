@@ -4,7 +4,7 @@
 
 Dockerized version of [wosc/schlund-ddns](https://github.com/wosc/schlund-ddns/)
 
-This image runs a python flask server to update DNS Records managed by [SchlundTech](http://www.schlundtech.com/) by using their official [XML-Gateway](http://www.schlundtech.com/services/xml-gateway/).
+This image runs a python flask server to update DNS Records managed by [SchlundTech](http://www.schlundtech.com/) by using their official [XML-Gateway](http://www.schlundtech.com/services/xml-gateway/) over http/s. A CLI is provided too.
 
 Many thanks to [wosc](https://github.com/wosc/) and [martinlowinski/php-dyndns](https://github.com/martinlowinski/php-dyndns) for providing their projects to the public.
 
@@ -13,9 +13,11 @@ Many thanks to [wosc](https://github.com/wosc/) and [martinlowinski/php-dyndns](
 
 ### Configuration
 
+Before you can use the XML-Gateway, you'll have to order access for free on the [Official Homepage](https://www.schlundtech.de/services/xml-gateway/)
+
 #### Credentials
 
-To get access to the XML-Gateway you'll have to provide your credentials.
+To get access to the XML-Gateway using the web api, you must provide your credentials in a config file.
 Simply create a configuration file in the root of your docker folder.
 
 	# copy the dist file
@@ -28,7 +30,7 @@ Simply create a configuration file in the root of your docker folder.
 
 #### docker-compose
 
-A basic [docker-compose.yaml](./docker-compose.yaml) is prioveded in this project an may look like this
+A basic [docker-compose.yaml](./docker-compose.yaml) is priovided in this project an may look like this
 
 	version: '3'
 	services:
@@ -59,10 +61,15 @@ It is not possible to update A-Records like `domain.tld` or `my.sub.sub.domain.t
 
 ### Execute an DNS Record update by CLI
 
-When the container is up and running it is listening on port 5000.
-You can also use the CLI `schlund-ddns` to update a DNS Record from the command line. If doing that, you'll have to provide the credentials as parameters. It is recommended to pass the credentials as environment variables in your docker-compose file to avoid sensible data in your command history.
+You can also use the CLI `schlund-ddns` to update a DNS Record from the command line. If doing that, you'll have to provide the credentials as parameters. It is recommended to pass the credentials as environment variables to avoid sensible data in your command history.
 
-	docker exec -it schlund-ddns schlund-ddns --username <USER> --password $PASS your.host.tld 0.0.0.0
+	docker run --rm -it --entrypoint schlund-ddns \
+		customelements/schlund-ddns \
+		--username <USER> \
+		--password $PASS \
+		your.host.tld \
+		0.0.0.0
+
 
 ## Setup with Traefik and basic auth
 
@@ -74,7 +81,7 @@ First we will create our encrypted basic auth credentials
 
 For security reason: Read your password into an environment variable called `PASS`
 
-	read -p "Password:" -s PASS
+	read -p "Password: " -s PASS
 
 use htpasswd to create your basic auth key, replace `<USER>` with a name of your choice
 
@@ -82,7 +89,7 @@ use htpasswd to create your basic auth key, replace `<USER>` with a name of your
 
 if you do not have htpasswd installed, install it with `sudo apt-get install apache2-utils` or use a docker image like
 
-	docker run --rm -ti xmartlabs/htpasswd <USER> $PASS  | sed -e s/\\$/\\$\\$/g
+	docker run --rm -it xmartlabs/htpasswd <USER> $PASS  | sed -e s/\\$/\\$\\$/g
 
 Put the output into the `traefik.frontend.auth.basic` label
 
